@@ -1,4 +1,3 @@
-import 'package:expense_tracker/colors/colors.dart';
 import 'package:expense_tracker/models/expense.dart';
 import 'package:expense_tracker/models/expense_summary.dart';
 import 'package:expense_tracker/styled_text.dart';
@@ -26,11 +25,13 @@ class SummaryItem extends StatelessWidget {
               icon: getCategoryIcon(expenseSummary.title, 35),
               matches: expenseSummary.relatedMatches,
             ),
-            StyledText(
-              '${formatNumber(expenseSummary.totalSpent)} \$',
-              color: blackContrast,
-              weight: FontWeight.w600,
-            )
+            const SizedBox(
+              height: 40,
+            ),
+            StyledText('${formatNumber(expenseSummary.totalSpent)} \$',
+                weight: FontWeight.w600,
+                color:
+                    Theme.of(context).textTheme.headlineMedium!.color as Color)
           ],
         ),
       ),

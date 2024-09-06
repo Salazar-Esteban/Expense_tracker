@@ -1,3 +1,4 @@
+import 'package:expense_tracker/data/expenses.dart';
 import 'package:expense_tracker/expenses/add_new.dart';
 import 'package:expense_tracker/models/expense.dart';
 import 'package:expense_tracker/expenses/expenses_list.dart';
@@ -5,29 +6,6 @@ import 'package:expense_tracker/models/expense_summary.dart';
 import 'package:expense_tracker/styled_text.dart';
 import 'package:expense_tracker/summaryChart/summary_chart.dart';
 import 'package:flutter/material.dart';
-
-final List<Expense> expensesListData = [
-  Expense(
-      amount: 9000,
-      category: ExpenseCategory.intertaiment,
-      date: DateTime.now(),
-      title: 'Cinema '),
-  Expense(
-      amount: 25490,
-      date: DateTime.now(),
-      title: 'HBO Suscription',
-      category: ExpenseCategory.home),
-  Expense(
-      amount: 31100,
-      date: DateTime.now(),
-      title: 'Netflix Suscription',
-      category: ExpenseCategory.home),
-  Expense(
-      amount: 109.990,
-      date: DateTime.now(),
-      title: 'Omint Suscription',
-      category: ExpenseCategory.health),
-];
 
 class ExpenceScreen extends StatefulWidget {
   const ExpenceScreen({super.key, required this.title});
@@ -66,6 +44,7 @@ class ExpenseState extends State<ExpenceScreen> {
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
         isScrollControlled: true,
+        useSafeArea: true,
         context: context,
         builder: (ctx) => AddNewExpense(_addExpenseHandler));
   }
@@ -76,21 +55,52 @@ class ExpenseState extends State<ExpenceScreen> {
     });
   }
 
-  void _removeExpenseHandler(String id) {
+  void _removeExpense(String id) {
+    final expense = expenses.firstWhere((expense) => expense.id == id);
+    final expenseIndex = expenses.indexOf(expense);
     setState(() {
       expenses.removeWhere((expense) => expense.id == id);
+    });
+//  Show undo message with undo option
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: const Duration(seconds: 5),
+      content: const StyledText("Expense removed !"),
+      backgroundColor: Colors.blue,
+      action: SnackBarAction(
+        label: 'Undo',
+        onPressed: () => _undoRemoveHandler(expense, expenseIndex),
+      ),
+    ));
+  }
+
+  void _undoRemoveHandler(Expense expenseForRecovering, int index) {
+    setState(() {
+      expenses.insert(index, expenseForRecovering);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    var mediaQ = MediaQuery.of(context).size;
+    double width = mediaQ.width;
+    double height = mediaQ.height;
+    print({width, height});
     final expenseSummary = calculateExpenseSummary().values.toList();
+    final mainContent = expenses.isEmpty
+        ? Center(
+            child: StyledHeader(
+            'No expenses found',
+            size: 20,
+            color: Theme.of(context).textTheme.headlineSmall!.color as Color,
+          ))
+        : Expanded(
+            child: ExpensesList(expensesListData, _removeExpense),
+          );
     print(expenseSummary);
     return Scaffold(
       appBar: AppBar(
-        foregroundColor: Colors.white,
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 4, 142, 255),
         title: Text(widget.title),
         actions: [
           IconButton(
@@ -105,23 +115,40 @@ class ExpenseState extends State<ExpenceScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SummaryChart(expenseSummary),
-            const SizedBox(
-              height: 50,
-            ),
-            StyledHeader(
-              'Total expenses: ${expenses.length}',
-              color: const Color.fromARGB(255, 15, 84, 126),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Expanded(child: ExpensesList(expensesListData, _removeExpenseHandler)),
-          ],
-        ),
+        child: width < 600
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SummaryChart(expenseSummary),
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  expenses.isNotEmpty
+                      ? StyledHeader(
+                          'Total expenses: ${expenses.length}',
+                          color: Theme.of(context)
+                              .textTheme
+                              .headlineSmall!
+                              .color as Color,
+                        )
+                      : const SizedBox(),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  mainContent,
+                ],
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: SummaryChart(expenseSummary)),
+                  const SizedBox(
+                    width: 15,
+                  ),
+                  Expanded(child: mainContent),
+                ],
+              ),
       ),
     );
   }

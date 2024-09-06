@@ -3,6 +3,13 @@ import 'package:expense_tracker/models/expense.dart';
 import 'package:expense_tracker/styled_text.dart';
 import 'package:flutter/material.dart';
 
+SizedBox gap({double y = 0, double x = 0}) {
+  return SizedBox(
+    height: y,
+    width: x,
+  );
+}
+
 class AddNewExpense extends StatefulWidget {
   const AddNewExpense(this.addExpenseHandler, {super.key});
   final void Function(Expense expense) addExpenseHandler;
@@ -93,88 +100,124 @@ class _AddNewExpenseState extends State<AddNewExpense> {
 
   @override
   Widget build(BuildContext context) {
-    print(_selectedCategory);
-    print(_selectedDate);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 40, 15, 15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextField(
+    final keywordSpace = MediaQuery.of(context).viewInsets.bottom;
+
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        var maxW = constraints.maxWidth;
+
+        var titleInputW = Flexible(
+          child: TextField(
             maxLength: 12,
             controller: _titleCtr,
+            style: TextStyle(
+                color:
+                    Theme.of(context).textTheme.headlineSmall!.color as Color),
             decoration: const InputDecoration(
               label: Text("Title"),
             ),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  controller: _amountCtr,
-                  decoration: const InputDecoration(
-                    label: Text('Amount'),
-                    prefixText: '\$ ',
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    StyledText(
-                      _selectedDate == null
-                          ? 'Select date'
-                          : formatterDate.format(_selectedDate!),
-                      color: blackContrast,
-                      weight: FontWeight.w500,
-                    ),
-                    IconButton(
-                        onPressed: _showDatePicker,
-                        icon: const Icon(Icons.calendar_month)),
-                  ],
-                ),
-              )
-            ],
-          ),
-          const SizedBox(height: 15),
-          DropdownButton(
-              value: _selectedCategory,
-              items: ExpenseCategory.values.map((category) {
-                return DropdownMenuItem(
-                    value: category,
-                    child: Row(
-                      children: [
-                        getCategoryIcon(category, 20),
-                        const SizedBox(
-                          width: 15,
-                        ),
-                        StyledText(category.name.toUpperCase(),
-                            color: blackContrast),
-                      ],
-                    ));
-              }).toList(),
-              onChanged: (value) => _handleDropdown(value)),
-          Expanded(
-            child: Row(
-              children: [
-                TextButton(
-                  onPressed: () => _closeModal(context),
-                  child: const Text('Cancel'),
-                ),
-                const Spacer(),
-                ElevatedButton(
-                  onPressed: _handleSubmit,
-                  child: const Text('Save expense'),
-                ),
-              ],
+        );
+
+        var amountInputW = Flexible(
+          child: TextField(
+            style: TextStyle(
+                color:
+                    Theme.of(context).textTheme.headlineSmall!.color as Color),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            controller: _amountCtr,
+            decoration: const InputDecoration(
+              label: Text('Amount'),
+              prefixText: '\$ ',
             ),
           ),
-        ],
-      ),
+        );
+        var dropDownCats = DropdownButton(
+            value: _selectedCategory,
+            items: ExpenseCategory.values.map((category) {
+              return DropdownMenuItem(
+                value: category,
+                child: Row(
+                  children: [
+                    getCategoryIcon(category, 20),
+                    gap(x: 10),
+                    StyledText(
+                      category.name.toUpperCase(),
+                      color: Theme.of(context)
+                          .dropdownMenuTheme
+                          .textStyle!
+                          .color as Color,
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            onChanged: _handleDropdown);
+        var datePickerW = Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            StyledText(
+              _selectedDate == null
+                  ? 'Select date'
+                  : formatterDate.format(_selectedDate!),
+              color: blackContrast,
+              weight: FontWeight.w500,
+            ),
+            IconButton(
+                onPressed: _showDatePicker,
+                icon: const Icon(Icons.calendar_month)),
+          ],
+        );
+        return SizedBox(
+          height: double.infinity,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(15, 40, 15, keywordSpace + 16),
+              child: Column(
+                mainAxisSize: MainAxisSize
+                    .min, // Ajusta el tamaño de la columna al mínimo necesario
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (maxW >= 600)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        titleInputW,
+                        gap(x: 15),
+                        amountInputW,
+                      ],
+                    )
+                  else
+                    titleInputW,
+                  if (maxW >= 600)
+                    Row(
+                      children: [dropDownCats, const Spacer(), datePickerW],
+                    )
+                  else
+                    Row(
+                      children: [amountInputW, const Spacer(), datePickerW],
+                    ),
+                  gap(y: 25),
+                  Row(
+                    children: [
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => _closeModal(context),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: _handleSubmit,
+                        child: const Text('Save expense'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

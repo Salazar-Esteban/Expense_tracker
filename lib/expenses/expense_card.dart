@@ -10,55 +10,48 @@ class ExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromARGB(255, 227, 226, 226),
-            spreadRadius: 0,
-            blurRadius: 2,
-            offset: Offset(1, 1), // changes position of shadow
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              StyledText(
-                expense.title,
-                color: blackContrast,
-              ),
-              const Spacer(),
-              Column(
-                children: [
-                  expense.getCategoryIcon,
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  StyledText(
-                    expense.getFormattedDate,
-                    color: blackContrast,
-                  )
-                ],
-              )
-            ],
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          StyledText(
-            '${formatNumber(expense.amount)} \$',
-            color: primaryBlue,
-            size: 16,
-            weight: FontWeight.w600,
-          ),
-        ],
+    return Card(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                StyledText(
+                  expense.title,
+                  color:
+                      Theme.of(context).textTheme.headlineSmall!.color as Color,
+                ),
+                const Spacer(),
+                Column(
+                  children: [
+                    expense.getCategoryIcon,
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    StyledText(
+                      expense.getFormattedDate,
+                      color: Theme.of(context).textTheme.headlineSmall!.color
+                          as Color,
+                    )
+                  ],
+                )
+              ],
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            StyledText(
+              '${formatNumber(expense.amount)} \$',
+              color: primaryBlue,
+              size: 16,
+              weight: FontWeight.w600,
+            ),
+          ],
+        ),
       ),
     );
   }
